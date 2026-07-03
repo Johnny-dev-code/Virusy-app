@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epidemiological Network Model</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>Epidemiological Network Model</h1>
+            <div class="subtitle">Stochastic simulation of virus transmission through population networks</div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="card">
+                <div class="card-title">Parameters</div>
+                
+                <div class="control-label">Scenario Presets</div>
+                <div class="presets-grid">
+                    <button class="preset-btn active" onclick="setPreset('showcase')">
+                        <h4>Showcase</h4>
+                        <p>High transmission, low recovery</p>
+                    </button>
+                    <button class="preset-btn" onclick="setPreset('random1')">
+                        <h4>Random 1</h4>
+                        <p>No transmission, low vaccine</p>
+                    </button>
+                    <button class="preset-btn" onclick="setPreset('test_vaccine')">
+                        <h4>Test Vaccine</h4>
+                        <p>High vaccine coverage scenario</p>
+                    </button>
+                    <button class="preset-btn" onclick="setPreset('custom')">
+                        <h4>Custom</h4>
+                        <p>Manually adjust parameters</p>
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label"><span>Population Size</span><span id="val-pop">100</span></div>
+                    <input type="range" id="param-pop" min="10" max="500" value="100" oninput="updateVal('pop', this.value)">
+                </div>
+                <div class="control-group">
+                    <div class="control-label"><span>Contact Probability</span><span id="val-contact">0.30</span></div>
+                    <input type="range" id="param-contact" min="0" max="1" step="0.05" value="0.30" oninput="updateVal('contact', this.value)">
+                </div>
+                <div class="control-group">
+                    <div class="control-label"><span>Transmission Rate</span><span id="val-trans">0.99</span></div>
+                    <input type="range" id="param-trans" min="0" max="1" step="0.01" value="0.99" oninput="updateVal('trans', this.value)">
+                </div>
+                <div class="control-group">
+                    <div class="control-label"><span>Recovered Trans.</span><span id="val-rectrans">0.01</span></div>
+                    <input type="range" id="param-rectrans" min="0" max="1" step="0.01" value="0.01" oninput="updateVal('rectrans', this.value)">
+                </div>
+                <div class="control-group">
+                    <div class="control-label"><span>Mortality Rate</span><span id="val-death">0.01</span></div>
+                    <input type="range" id="param-death" min="0" max="1" step="0.01" value="0.01" oninput="updateVal('death', this.value)">
+                </div>
+                <div class="control-group">
+                    <div class="control-label"><span>Vaccination Rate</span><span id="val-vacrate">1.00</span></div>
+                    <input type="range" id="param-vacrate" min="0" max="1" step="0.05" value="1.00" oninput="updateVal('vacrate', this.value)">
+                </div>
+                <div class="control-group">
+                    <div class="control-label"><span>Vaccine Transmission</span><span id="val-vactrans">0.99</span></div>
+                    <input type="range" id="param-vactrans" min="0" max="1" step="0.01" value="0.99" oninput="updateVal('vactrans', this.value)">
+                </div>
+
+                <button class="btn-primary" onclick="applyNetwork()">Apply & Reset Network</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Population States</div>
+                <div class="stat-row">
+                    <div class="stat-label"><span class="stat-dot" style="background:#ef4444;"></span>Infected</div>
+                    <div class="stat-val" id="stat-infected">0</div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-label"><span class="stat-dot" style="background:#10b981;"></span>Recovered</div>
+                    <div class="stat-val" id="stat-recovered">0</div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-label"><span class="stat-dot" style="background:#f59e0b;"></span>Vaccinated</div>
+                    <div class="stat-val" id="stat-vaccinated">0</div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-label"><span class="stat-dot" style="background:#64748b;"></span>Dead</div>
+                    <div class="stat-val" id="stat-dead">0</div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-label"><span class="stat-dot" style="background:#3b82f6;"></span>Healthy</div>
+                    <div class="stat-val" id="stat-healthy">100</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Simulation Control</div>
+                
+                <div class="control-group" style="margin-bottom: 10px;">
+                    <div class="control-label">Interval / Speed</div>
+                    <select id="param-speed" style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11px; background: white;">
+                        <option value="1000">Every 1 second</option>
+                        <option value="2000">Every 2 seconds</option>
+                        <option value="5000">Every 5 seconds</option>
+                        <option value="500" selected>Speed: 1x (0.5s)</option>
+                        <option value="200">Speed: 2x (0.2s)</option>
+                        <option value="50">Speed: 5x (0.05s)</option>
+                    </select>
+                </div>
+
+                <div class="action-container">
+                    <button class="btn-run" id="btn-play" onclick="toggleSimulation()">▶ Run</button>
+                    <button class="btn-icon" onclick="resetSim()">⟳</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="center-panel">
+            <div class="card-title">Network Topology</div>
+            <div class="network-viewport">
+                <img id="network-image" style="width: 100%; height: 100%; object-fit: contain; display: none;" />
+                <div id="network-placeholder" style="text-align: center; color: #94a3b8;">
+                    <div style="font-size: 48px;">🕸️</div>
+                    <p style="font-size: 13px;">Simulation Running Visualizer</p>
+                </div>
+            </div>
+            <div class="badge-bar">
+                <div class="badge"><span class="stat-dot" style="background:#3b82f6;"></span> Healthy</div>
+                <div class="badge"><span class="stat-dot" style="background:#ef4444;"></span> Infected</div>
+                <div class="badge"><span class="stat-dot" style="background:#10b981;"></span> Recovered</div>
+                <div class="badge"><span class="stat-dot" style="background:#64748b;"></span> Dead</div>
+                <div class="badge"><span class="stat-dot" style="background:#f59e0b;"></span> Vaccinated</div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="card-title">Population Dynamics</div>
+            <div style="flex:1; border: 1px solid #e2e8f0; border-radius: 6px; background: #fafafa; display:flex; align-items:center; justify-content:center;">
+                <img id="dynamics-image" style="width: 100%; height: 100%; object-fit: contain; display: none;" />
+                <div id="dynamics-placeholder" style="color:#94a3b8; font-size:12px;">Chart Timeline Container</div>
+            </div>
+        </div>
+    </div>
+    <div></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
