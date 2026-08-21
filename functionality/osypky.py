@@ -1,12 +1,12 @@
-# functionality/osypky.py
-import matplotlib
-matplotlib.use('Agg')  # Vypne otváranie samostatných okien
-import matplotlib.pyplot as plt
-import networkx as nx
 import random
+import networkx as nx
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib.patches import Patch, Wedge, Circle
+from matplotlib.collections import PatchCollection
 import io
 import base64
-from matplotlib.patches import Patch, Wedge, Circle
 
 colors = ['lime', 'salmon', 'darkgreen', 'grey']
 
@@ -14,64 +14,81 @@ def draw_infection_duration():
     return max(7, min(14, int(random.gauss(10, 2))))
 
 class LiveSimulation:
-    def __init__(self, num_people, transmission_probability, recovered_transmission_probability,
-                 death_probability, contact_probability, vaccine_rate, vaccine_transmition):
-        
-        self.num_people = num_people
-        self.vaccine_rate = vaccine_rate
-        
-        # Inicializácia siete
-        self.G = nx.erdos_renyi_graph(num_people, contact_probability)
-        self.status = {i: 0 for i in range(num_people)}
+    def __init__(self, params=None, *args, **kwargs):
+        if params is None:
+            params = {}
+
+        self.num_people = int(params.get('num_people', 100))
+        self.contact_probability = float(params.get('contact_probability', 0.04))
+        self.transmission_probability = float(params.get('transmission_probability', 0.90))
+        self.recovered_transmission_probability = float(params.get('recovered_transmission_probability', 0.0))
+        self.vaccine_transmition = float(params.get('vaccine_transmition', 0.05))
+        self.death_probability = float(params.get('death_probability', 0.02))
+        self.vaccine_rate = float(params.get('vaccine_rate', 0.40))
+
+        # Načítanie grafu podľa vašej pôvodnej logiky
+        p_val = max(0.001, min(1.0, self.contact_probability))
+        self.G = nx.erdos_renyi_graph(n=self.num_people, p=p_val)
+        self.status = {i: 0 for i in range(self.num_people)}
         self.infection_timer = {}
 
         # Očkovanie
-        num_vaccinated = int(num_people * vaccine_rate)
-        self.vaccinated = set(random.sample(list(self.status.keys()), num_vaccinated))
+        num_vaccinated = int(self.num_people * self.vaccine_rate)
+        if self.num_people > 0:
+            self.vaccinated = set(random.sample(list(self.status.keys()), min(num_vaccinated, self.num_people)))
+        else:
+            self.vaccinated = set()
 
-        # Pacient nula
-        patient_zero = random.choice(list(self.status.keys()))
-        self.status[patient_zero] = 1
-        self.infection_timer[patient_zero] = draw_infection_duration()
+        # Patient Zero
+        if self.num_people > 0:
+            patient_zero = random.choice(list(self.status.keys()))
+            self.status[patient_zero] = 1
+            self.infection_timer[patient_zero] = draw_infection_duration()
 
-        # Fixná pozícia uzlov
+        # Pozície uzlov
         self.pos = nx.spring_layout(self.G, k=1.5, iterations=100)
 
-        # Štatistiky v čase
-        self.infected_counts = []
-        self.recovered_counts = []
-        self.dead_counts = []
-        self.iteration = 0
+        # História pre graf SIRD
+        self.history = [{n: self.status[n] for n in self.G.nodes}]
 
-        # Tvoja nedotknutá funkcia šírenia
-        self.death_probability = death_probability
-        self.transmission_probability = transmission_probability
-        self.vaccine_transmition = vaccine_transmition
-        self.recovered_transmission_probability = recovered_transmission_probability
-
-        # OBLASŤ PRE ZRYCHLENIE: Vytvoríme objekty grafov IBA RAZ pri štarte
+        # Matplotlib objekty
         self.fig1, self.ax1 = plt.subplots(figsize=(7, 7))
         self.fig2, self.ax2 = plt.subplots(figsize=(6, 4))
 
-    def spread_virus(self):
-        # Úplne tvoja pôvodná logika, bez zmeny
+    def next_step(self):
+        # Kontrola, či ešte existujú infikovaní
+        infected_nodes = [n for n in self.G.nodes if self.status[n] == 1]
+        if not infected_nodes:
+            return self._generate_response(is_finished=True)
+
+        # PÔVODNÁ LOGIKA SPREAD_VIRUS
         new_status = self.status.copy()
+
         for person in self.G.nodes:
             if self.status[person] == 3:
                 continue
+
             if self.status[person] == 1:
+                # Úmrtie na chorobu
                 if random.random() < self.death_probability:
                     new_status[person] = 3
                     self.infection_timer.pop(person, None)
                     continue
+
+                # Odpočítavanie trvania infekcie
                 self.infection_timer[person] -= 1
+
+                # Uzdravenie
                 if self.infection_timer[person] <= 0:
                     new_status[person] = 2
                     self.infection_timer.pop(person, None)
                     continue
+
+                # Infikovanie susedov
                 for neighbor in self.G.neighbors(person):
                     if self.status[neighbor] == 3 or self.status[neighbor] == 1:
                         continue
+
                     if neighbor in self.vaccinated:
                         susceptibility = self.vaccine_transmition
                     elif self.status[neighbor] == 2:
@@ -80,79 +97,111 @@ class LiveSimulation:
                         susceptibility = 1.0
                     else:
                         continue
+
                     if random.random() < self.transmission_probability * susceptibility:
                         new_status[neighbor] = 1
                         self.infection_timer[neighbor] = draw_infection_duration()
-        return new_status
 
-    def next_step(self):
-        """Vykoná presne JEDEN krok simulácie a vráti aktuálny stav a grafy"""
-        has_infected = sum(1 for s in self.status.values() if s == 1) > 0
-        
-        if has_infected or self.iteration == 0:
-            if self.iteration > 0:
-                self.status = self.spread_virus()
-            
-            self.infected_counts.append(sum(1 for s in self.status.values() if s == 1))
-            self.recovered_counts.append(sum(1 for s in self.status.values() if s == 2))
-            self.dead_counts.append(sum(1 for s in self.status.values() if s == 3))
-            self.iteration += 1
+        self.status = new_status
+        self.history.append({n: self.status[n] for n in self.G.nodes})
 
-        # 1. BLESKOVÉ PREKRESLENIE SIETE
-        self.ax1.clear()
-        nx.draw_networkx_edges(self.G, self.pos, ax=self.ax1, edge_color='#cbd5e1', width=0.5)
+        # Zistenie, či po tomto kroku ešte ostal niekto infikovaný
+        still_infected = any(s == 1 for s in self.status.values())
+        return self._generate_response(is_finished=not still_infected)
 
+    def _generate_response(self, is_finished):
+        # Vyčistenie plochy bez porušenia osí Matplotlibu
+        self.ax1.cla()
+
+        # Vykreslenie hrán
+        nx.draw_networkx_edges(self.G, self.pos, ax=self.ax1, edge_color='#64748b', width=1.0, alpha=0.5)
+
+        # Vykreslenie uzlov (Wedge a Circle presne podľa pôvodného kódu)
         r = 0.05
+        patches = []
         for n in self.G.nodes:
             x, y = self.pos[n]
             s = self.status[n]
+            c_color = colors[s]
+
             if n in self.vaccinated:
-                self.ax1.add_patch(Wedge((x, y), r, 0, 180, facecolor=colors[s]))
-                self.ax1.add_patch(Wedge((x, y), r, 180, 360, facecolor="blue"))
-                self.ax1.add_patch(Circle((x, y), r * 1.05, fill=False, edgecolor='blue', linewidth=2))
+                patches.append(Wedge((x, y), r, 0, 180, facecolor=c_color))
+                patches.append(Wedge((x, y), r, 180, 360, facecolor="blue"))
+                patches.append(Circle((x, y), r * 1.05, fill=False, edgecolor='blue', linewidth=1.5))
             else:
-                self.ax1.add_patch(Circle((x, y), r, facecolor=colors[s], edgecolor='black'))
+                patches.append(Circle((x, y), r, facecolor=c_color, edgecolor='black', linewidth=0.8))
+
+        collection = PatchCollection(patches, match_original=True)
+        self.ax1.add_collection(collection)
+
+        # Nastavenie hraníc platna
+        if self.pos:
+            x_vals = [p[0] for p in self.pos.values()]
+            y_vals = [p[1] for p in self.pos.values()]
+            pad = 0.2
+            self.ax1.set_xlim(min(x_vals) - pad, max(x_vals) + pad)
+            self.ax1.set_ylim(min(y_vals) - pad, max(y_vals) + pad)
 
         self.ax1.set_aspect('equal')
         self.ax1.axis('off')
-        self.ax1.set_title(f"SIRD Network Topology - Iteration {self.iteration}", fontsize=10)
 
-        # Uloženie do stringu (pamäte)
+        legend_elements = [
+            Patch(facecolor='lime', label='Susceptible'),
+            Patch(facecolor='salmon', label='Infected'),
+            Patch(facecolor='darkgreen', label='Recovered'),
+            Patch(facecolor='grey', label='Dead'),
+            Patch(facecolor='blue', label='Vaccinated')
+        ]
+        self.ax1.legend(handles=legend_elements, loc='upper right', fontsize=8)
+        self.fig1.tight_layout()
+
         buf_net = io.BytesIO()
-        self.fig1.savefig(buf_net, format='png', bbox_inches='tight', dpi=100)
+        self.fig1.savefig(buf_net, format='png', dpi=80)
         buf_net.seek(0)
         net_url = f"data:image/png;base64,{base64.b64encode(buf_net.read()).decode('utf-8')}"
+        buf_net.close()
 
-        # 2. BLESKOVÉ PREKRESLENIE HISTORICKÉHO GRAFU
-        self.ax2.clear()
-        self.ax2.plot(self.infected_counts, label='Infected', color='salmon', linewidth=2)
-        self.ax2.plot(self.recovered_counts, label='Recovered', color='darkgreen', linewidth=2)
-        self.ax2.plot(self.dead_counts, label='Dead', color='grey', linewidth=2)
-        self.ax2.set_xlabel("Iteration", fontsize=9)
-        self.ax2.set_ylabel("People", fontsize=9)
-        self.ax2.set_title("SIRD Dynamics", fontsize=10)
-        self.ax2.legend(loc='upper right', fontsize=8)
+        # Vykreslenie SIRD dynamiky
+        self.ax2.cla()
+        infected_counts = [sum(1 for s in h.values() if s == 1) for h in self.history]
+        recovered_counts = [sum(1 for s in h.values() if s == 2) for h in self.history]
+        dead_counts = [sum(1 for s in h.values() if s == 3) for h in self.history]
+
+        self.ax2.plot(infected_counts, label='Infected', color='salmon')
+        self.ax2.plot(recovered_counts, label='Recovered', color='darkgreen')
+        self.ax2.plot(dead_counts, label='Dead', color='grey')
+        self.ax2.set_xlabel("Iteration", fontsize=8)
+        self.ax2.set_ylabel("People", fontsize=8)
+        self.ax2.set_title("SIRD Dynamics (Fixed Infection Duration)", fontsize=9)
+        self.ax2.legend(loc='upper right', fontsize=7)
         self.ax2.grid(True, linestyle='--', alpha=0.5)
+        self.fig2.tight_layout()
 
         buf_dyn = io.BytesIO()
-        self.fig2.savefig(buf_dyn, format='png', bbox_inches='tight', dpi=100)
+        self.fig2.savefig(buf_dyn, format='png', dpi=80)
         buf_dyn.seek(0)
         dyn_url = f"data:image/png;base64,{base64.b64encode(buf_dyn.read()).decode('utf-8')}"
+        buf_dyn.close()
 
-        # Výpočty čísiel pre štatistiky
-        final_infected = sum(1 for s in self.status.values() if s == 1)
-        final_recovered = sum(1 for s in self.status.values() if s == 2)
-        final_dead = sum(1 for s in self.status.values() if s == 3)
-        final_healthy = self.num_people - (final_infected + final_recovered + final_dead)
+        i_count = sum(1 for s in self.status.values() if s == 1)
+        r_count = sum(1 for s in self.status.values() if s == 2)
+        d_count = sum(1 for s in self.status.values() if s == 3)
+        h_count = self.num_people - (i_count + r_count + d_count)
 
-        # Na konci už nezatvárame okná cez plt.close(), figúry recyklujeme!
         return {
-            "healthy": final_healthy,
-            "infected": final_infected,
-            "recovered": final_recovered,
-            "dead": final_dead,
+            "healthy": h_count,
+            "infected": i_count,
+            "recovered": r_count,
+            "dead": d_count,
             "vaccinated": len(self.vaccinated),
             "network_graph": net_url,
             "dynamics_graph": dyn_url,
-            "is_finished": not has_infected and self.iteration > 1
+            "is_finished": is_finished
         }
+
+    def __del__(self):
+        try:
+            plt.close(self.fig1)
+            plt.close(self.fig2)
+        except Exception:
+            pass
