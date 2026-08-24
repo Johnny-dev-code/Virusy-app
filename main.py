@@ -1,4 +1,3 @@
-# main.py
 import webview
 import os
 import sys
@@ -7,21 +6,20 @@ from functionality.saves_handling import (
     save_simulation,
     list_saved_simulations,
     load_simulation_file,
-    render_saved_frame
+    render_saved_frame,
+    resume_simulation_from_saved_step  # <--- 1. Pridaný import
 )
 
 def get_gui_path():
     """ Správne zistí cestu k složke gui pre vývoj aj po zbalení cez PyInstaller """
     if hasattr(sys, '_MEIPASS'):
-        # PyInstaller rozbalí statické súbory sem
         return os.path.join(sys._MEIPASS, 'gui', 'index.html')
-    # Bežný vývojový režim
     return os.path.join(os.path.dirname(__file__), 'gui', 'index.html')
 
 
 class SimulationBridge:
     def __init__(self):
-        self.active_sim = None
+        self.active_sim = LiveSimulation() if hasattr(LiveSimulation, '__call__') else None
         self.loaded_replay = None
 
     # --- LIVE SIMULÁCIA ---
@@ -72,6 +70,14 @@ class SimulationBridge:
             return render_saved_frame(metadata, step_data, cumulative_history)
         
         return {"error": "Krok je mimo rozsahu"}
+
+    # --- 2. NOVÁ METÓDA PRE JS BRIDGE ---
+    def resume_simulation_from_saved_step(self, filename, step_index):
+        # Ak aktívna simulácia neexistuje, vytvoríme novú inštanciu
+        if not self.active_sim:
+            self.active_sim = LiveSimulation()
+            
+        return resume_simulation_from_saved_step(self.active_sim, filename, step_index)
 
 
 def main():
