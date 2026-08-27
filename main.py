@@ -7,7 +7,7 @@ from functionality.saves_handling import (
     list_saved_simulations,
     load_simulation_file,
     render_saved_frame,
-    resume_simulation_from_saved_step  # <--- 1. Pridaný import
+    resume_simulation_from_saved_step
 )
 
 def get_gui_path():
@@ -23,7 +23,9 @@ class SimulationBridge:
         self.loaded_replay = None
 
     # --- LIVE SIMULÁCIA ---
-    def init_simulation(self, params):
+    def init_simulation(self, params=None):
+        if params is None:
+            params = {}
         self.active_sim = LiveSimulation(params=params)
         return self.active_sim._generate_response(is_finished=False)
 
@@ -71,13 +73,22 @@ class SimulationBridge:
         
         return {"error": "Krok je mimo rozsahu"}
 
-    # --- 2. NOVÁ METÓDA PRE JS BRIDGE ---
+    # --- OBNOVANIE LIVE SIMULÁCIE ZO SÚBORU ---
     def resume_simulation_from_saved_step(self, filename, step_index):
-        # Ak aktívna simulácia neexistuje, vytvoríme novú inštanciu
         if not self.active_sim:
             self.active_sim = LiveSimulation()
             
-        return resume_simulation_from_saved_step(self.active_sim, filename, step_index)
+        res = resume_simulation_from_saved_step(self.active_sim, filename, step_index)
+        
+        if res.get("status") == "success":
+            # POZOR ÚPRAVA: Po úspešnom obnovení vrátime rovno vygenerovaný vizuálny frame, 
+            # aby frontend mohol ihneď zobraziť obnovenú sieť a grafy!
+            response = self.active_sim._generate_response(is_finished=False)
+            response["status"] = "success"
+            response["resumed_step"] = res.get("step", 0)
+            return response
+            
+        return res
 
 
 def main():

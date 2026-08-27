@@ -85,7 +85,7 @@ function getSliderParams() {
         recovered_transmission_probability: getVal('param-rectrans', 0.05),
         vaccine_transmition: getVal('param-vactrans', 0.10),
         death_probability: getVal('param-death', 0.01),
-        vaccine_rate: getVal('param-vacrate', 0.20)
+        vaccine_rate: getVal('param-vacrate', 0.40)
     };
 }
 
@@ -405,7 +405,14 @@ function pauseReplay() {
 // --- POMOCNÉ FUNKCIE ---
 function updateVal(id, val) {
     const el = document.getElementById(`val-${id}`);
-    if (el) el.innerText = val;
+    if (!el) return;
+
+    if (id === 'pop') {
+        el.innerText = parseInt(val);
+    } else {
+        // Zabezpečí pekne formátované číslá na 2 desatinné miesta (napr. 0.40 namiesto 0.4)
+        el.innerText = parseFloat(val).toFixed(2);
+    }
 }
 
 function setPreset(name) {

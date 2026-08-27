@@ -45,15 +45,15 @@ def save_simulation(sim, filename=None):
             metadata = {
                 "type": "metadata",
                 "timestamp": filename,
-                "num_people": getattr(sim, 'num_people', len(sim.G.nodes) if hasattr(sim, 'G') else 50),
-                "contact_probability": getattr(sim, 'contact_probability', 0.2),
-                "transmission_probability": getattr(sim, 'transmission_probability', 0.3),
-                "recovered_transmission_probability": getattr(sim, 'recovered_transmission_probability', 0.05),
-                "vaccine_transmition": getattr(sim, 'vaccine_transmition', 0.1),
-                "death_probability": getattr(sim, 'death_probability', 0.01),
-                "vaccine_rate": getattr(sim, 'vaccine_rate', 0.2),
+                "num_people": int(getattr(sim, 'num_people', len(sim.G.nodes) if hasattr(sim, 'G') else 50)),
+                "contact_probability": float(getattr(sim, 'contact_probability', 0.05)),
+                "transmission_probability": float(getattr(sim, 'transmission_probability', 0.3)),
+                "recovered_transmission_probability": float(getattr(sim, 'recovered_transmission_probability', 0.05)),
+                "vaccine_transmition": float(getattr(sim, 'vaccine_transmition', 0.1)),
+                "death_probability": float(getattr(sim, 'death_probability', 0.01)),
+                "vaccine_rate": float(getattr(sim, 'vaccine_rate', 0.4)), # Nový parameter pre zaočkovanosť
                 "edges": list(sim.G.edges()) if hasattr(sim, 'G') else [],
-                "vaccinated": list(getattr(sim, 'vaccinated', [])),
+                "vaccinated": [int(x) for x in getattr(sim, 'vaccinated', [])],
                 "positions": {str(k): list(v) for k, v in sim.pos.items()} if hasattr(sim, 'pos') else {}
             }
             f.write(json.dumps(metadata) + "\n")
@@ -114,7 +114,7 @@ def load_simulation_file(filename):
         if not history:
             return None
 
-        # Ak súbor nemal metadáta (starší tvar)
+        # Ak súbor nemal metadáta (starší tvar súboru)
         if not metadata:
             first_status = history[0]["status"]
             num_people = len(first_status)
@@ -122,12 +122,12 @@ def load_simulation_file(filename):
                 "type": "metadata",
                 "timestamp": filename,
                 "num_people": num_people,
-                "contact_probability": 0.2,
+                "contact_probability": 0.05,
                 "transmission_probability": 0.3,
                 "recovered_transmission_probability": 0.05,
                 "vaccine_transmition": 0.1,
                 "death_probability": 0.01,
-                "vaccine_rate": 0.2,
+                "vaccine_rate": 0.4, # Fallback pre staré súbory
                 "edges": [],
                 "vaccinated": [],
                 "positions": {str(i): [0, 0] for i in range(num_people)}
@@ -152,14 +152,14 @@ def resume_simulation_from_saved_step(sim, filename, step_index):
 
     target_step_data = history[step_index]
 
-    # 1. Nastavenie parametrov zo súboru
-    sim.num_people = metadata.get("num_people", getattr(sim, 'num_people', 50))
-    sim.contact_probability = metadata.get("contact_probability", getattr(sim, 'contact_probability', 0.2))
-    sim.transmission_probability = metadata.get("transmission_probability", getattr(sim, 'transmission_probability', 0.3))
-    sim.recovered_transmission_probability = metadata.get("recovered_transmission_probability", getattr(sim, 'recovered_transmission_probability', 0.05))
-    sim.vaccine_transmition = metadata.get("vaccine_transmition", getattr(sim, 'vaccine_transmition', 0.1))
-    sim.death_probability = metadata.get("death_probability", getattr(sim, 'death_probability', 0.01))
-    sim.vaccine_rate = metadata.get("vaccine_rate", getattr(sim, 'vaccine_rate', 0.2))
+    # 1. Nastavenie parametrov zo súboru do simulátora
+    sim.num_people = int(metadata.get("num_people", getattr(sim, 'num_people', 50)))
+    sim.contact_probability = float(metadata.get("contact_probability", getattr(sim, 'contact_probability', 0.05)))
+    sim.transmission_probability = float(metadata.get("transmission_probability", getattr(sim, 'transmission_probability', 0.3)))
+    sim.recovered_transmission_probability = float(metadata.get("recovered_transmission_probability", getattr(sim, 'recovered_transmission_probability', 0.05)))
+    sim.vaccine_transmition = float(metadata.get("vaccine_transmition", getattr(sim, 'vaccine_transmition', 0.1)))
+    sim.death_probability = float(metadata.get("death_probability", getattr(sim, 'death_probability', 0.01)))
+    sim.vaccine_rate = float(metadata.get("vaccine_rate", getattr(sim, 'vaccine_rate', 0.4)))
 
     # 2. Obnovenie grafu a pozícií
     sim.G = nx.Graph()
@@ -178,25 +178,22 @@ def resume_simulation_from_saved_step(sim, filename, step_index):
     sim.vaccinated = set(int(x) for x in metadata.get("vaccinated", []))
 
     # 3. Prevod stavov uzlov (kľúčov) zo stringu na int
-    # Podpora pre číselné kódovanie (0=S, 1=I, 2=R) aj písmenové ('S', 'I', 'R')
     raw_status = target_step_data.get("status", target_step_data)
     sim.status = {}
     for k, v in raw_status.items():
         if k == "step":
             continue
-        sim.status[int(k)] = v
+        sim.status[int(k)] = int(v)
 
     sim.step_count = target_step_data.get("step", step_index)
 
     # 4. REKONŠTRUKCIA infection_timer
-    # Predpokladaná dĺžka infekcie v simulácii (napr. 14 dní alebo sim.infection_duration)
     default_duration = getattr(sim, 'infection_duration', 14)
     sim.infection_timer = {}
 
     for person, st in sim.status.items():
         # Ak je osoba v danom kroku infikovaná (stav 1 alebo 'I')
         if st in (1, 'I'):
-            # Zistíme, pred koľkými krokmi sa nakazila
             steps_infected = 0
             for prev_step_idx in range(step_index, -1, -1):
                 prev_status = history[prev_step_idx].get("status", history[prev_step_idx])
@@ -205,14 +202,14 @@ def resume_simulation_from_saved_step(sim, filename, step_index):
                 else:
                     break  # Tu infekcia začala
             
-            # Nastavíme zostávajúci časovač
             remaining_time = max(1, default_duration - (steps_infected - 1))
             sim.infection_timer[person] = remaining_time
 
-    # Obnovenie histórie
+    # Obnovenie histórie do daného kroku
     sim.history = [h.get("status", h) for h in history[:step_index + 1]]
 
     return {"status": "success", "step": sim.step_count}
+
 
 def render_saved_frame(metadata, step_data, cumulative_history):
     """
@@ -228,8 +225,9 @@ def render_saved_frame(metadata, step_data, cumulative_history):
     raw_pos = metadata.get("positions", {})
     pos = {int(k): v for k, v in raw_pos.items()} if raw_pos else nx.spring_layout(G)
     
-    vaccinated = set(metadata.get("vaccinated", []))
-    status = step_data.get("status", {})
+    vaccinated = set(int(x) for x in metadata.get("vaccinated", []))
+    raw_status = step_data.get("status", {})
+    status = {int(k): int(v) for k, v in raw_status.items() if k != "step"}
 
     fig1, ax1 = plt.subplots(figsize=(7, 7))
     fig2, ax2 = plt.subplots(figsize=(6, 4))

@@ -11,7 +11,7 @@
     <header class="app-header">
         <div class="header-titles">
             <h1>Epidemiological Network Model</h1>
-            <p>Stochastic simulation of virus transmission through population networks</p>
+            <p>Stochastic simulation of virus transmission through population networks &bull; Made by Johnny</p>
         </div>
         
         <!-- PREPÍNAČ REŽIMOV PODĽA PRELOADU -->
@@ -64,6 +64,11 @@
                         </div>
 
                         <div class="control-group">
+                            <div class="control-label"><span>VACCINATION RATE</span> <strong id="val-vacrate">0.40</strong></div>
+                            <input type="range" id="param-vacrate" min="0" max="1" step="0.01" value="0.40" oninput="updateVal('vacrate', this.value)">
+                        </div>
+
+                        <div class="control-group">
                             <div class="control-label"><span>CONTACT PROBABILITY</span> <strong id="val-contact">0.05</strong></div>
                             <input type="range" id="param-contact" min="0" max="1" step="0.01" value="0.05" oninput="updateVal('contact', this.value)">
                         </div>
@@ -85,9 +90,8 @@
                             <input type="range" id="param-vactrans" min="0" max="1" step="0.01" value="0.10" oninput="updateVal('vactrans', this.value)">
                         </div>
 
-                        <!-- Skryté pre funkčnosť, no prispôsobené -->
+                        <!-- Skrytý ostáva už len death rate -->
                         <input type="hidden" id="param-death" value="0.01">
-                        <input type="hidden" id="param-vacrate" value="0.20">
                     </div>
 
                     <div class="actions-group">
@@ -135,11 +139,11 @@
 
                 <!-- LEGENDA PODĽA PRELOŽENÉHO OBRÁZKA -->
                 <div class="legend-bar">
-                    <div class="legend-item"><span class="dot blue"></span> Healthy</div>
+                    <div class="legend-item"><span class="dot lightgreen"></span> Healthy</div>
                     <div class="legend-item"><span class="dot red"></span> Infected</div>
-                    <div class="legend-item"><span class="dot green"></span> Recovered</div>
+                    <div class="legend-item"><span class="dot darkgreen"></span> Recovered</div>
                     <div class="legend-item"><span class="dot dark"></span> Dead</div>
-                    <div class="legend-item"><span class="dot yellow"></span> Vaccinated</div>
+                    <div class="legend-item"><span class="dot blue"></span> Vaccinated</div>
                 </div>
 
                 <!-- REPLAY PREHRÁVAČ (Svetlý minimalistický) -->
