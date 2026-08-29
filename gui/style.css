@@ -100,7 +100,7 @@ body {
     font-weight: 700;
     color: #334155;
     letter-spacing: 0.8px;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
     text-transform: uppercase;
 }
 
@@ -119,8 +119,8 @@ body {
 .presets-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 20px;
+    gap: 5px;
+    margin-bottom: 10px;
 }
 
 .preset-card {
@@ -141,7 +141,7 @@ body {
 /* SLIDERY PODĽA PRELOŽENÉHO DESIGNU */
 .sliders-section { flex: 1; overflow-y: auto; }
 
-.control-group { margin-bottom: 16px; }
+.control-group { margin-bottom: 10px; }
 
 .control-label {
     font-size: 10px;

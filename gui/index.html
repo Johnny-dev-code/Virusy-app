@@ -2,7 +2,7 @@
 <html lang="sk">
 <head>
     <meta charset="UTF-8">
-    <title>Epidemiological Network Model</title>
+    <title>Epidemiologický model siete</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -10,19 +10,19 @@
     <!-- TOP HEADER -->
     <header class="app-header">
         <div class="header-titles">
-            <h1>Epidemiological Network Model</h1>
-            <p>Stochastic simulation of virus transmission through population networks &bull; Made by Johnny</p>
+            <h1>Epidemiologický model siete  pre virus osýpok</h1>
+            <p>Pravdepodobnostná simulácia prenosu vírusu v sieti ľudí &bull; Autor: Johnny</p>
         </div>
         
         <!-- PREPÍNAČ REŽIMOV PODĽA PRELOADU -->
         <div class="mode-tabs">
             <button class="tab-btn active" id="tab-live" onclick="switchMode('live')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                Simulation
+                Simulácia
             </button>
             <button class="tab-btn" id="tab-saved" onclick="switchMode('saved')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                Saved
+                Uložené
             </button>
         </div>
     </header>
@@ -35,58 +35,58 @@
             <!-- REŽIM 1: SIMULATION PARAMETERS -->
             <div id="panel-live" class="mode-panel active">
                 <div class="card">
-                    <h2 class="card-main-title">PARAMETERS</h2>
+                    <h2 class="card-main-title">PARAMETRE</h2>
                     
-                    <span class="section-label">SCENARIO PRESETS</span>
+                    <span class="section-label">Prednastavené hodnoty</span>
                     <div class="presets-grid">
                         <div class="preset-card active" onclick="setPreset('showcase')">
-                            <strong>Low Spread</strong>
-                            <p>Minimal transmission, high vaccination</p>
+                            <strong>Nízke šírenie</strong>
+                            <p>Minimálny prenos, vysoka zaočkovanosť</p>
                         </div>
                         <div class="preset-card" onclick="setPreset('random1')">
-                            <strong>High Infection</strong>
-                            <p>Rapid spread, low intervention</p>
+                            <strong>Vysoká infekčnosť</strong>
+                            <p>Rapídne šírenie, malé zásahy</p>
                         </div>
                         <div class="preset-card" onclick="setPreset('test_vaccine')">
-                            <strong>Vaccinated Population</strong>
-                            <p>High vaccination coverage</p>
+                            <strong>Vakcinovaná populácia</strong>
+                            <p>Vysoko zaočkovaná populácia</p>
                         </div>
                         <div class="preset-card" onclick="setPreset('sparse')">
-                            <strong>Sparse Network</strong>
-                            <p>Limited contacts, isolated clusters</p>
+                            <strong>Riedka sieť</strong>
+                            <p>obmedzené kontakty, izolované skupinky</p>
                         </div>
                     </div>
 
                     <div class="sliders-section">
                         <div class="control-group">
-                            <div class="control-label"><span>POPULATION SIZE</span> <strong id="val-pop">100</strong></div>
+                            <div class="control-label"><span>VEĽKOSŤ POPUlÁCIE</span> <strong id="val-pop">100</strong></div>
                             <input type="range" id="param-pop" min="10" max="500" value="100" oninput="updateVal('pop', this.value)">
                         </div>
 
                         <div class="control-group">
-                            <div class="control-label"><span>VACCINATION RATE</span> <strong id="val-vacrate">0.40</strong></div>
+                            <div class="control-label"><span>ZAOČKOVANOSŤ</span> <strong id="val-vacrate">0.40</strong></div>
                             <input type="range" id="param-vacrate" min="0" max="1" step="0.01" value="0.40" oninput="updateVal('vacrate', this.value)">
                         </div>
 
                         <div class="control-group">
-                            <div class="control-label"><span>CONTACT PROBABILITY</span> <strong id="val-contact">0.05</strong></div>
+                            <div class="control-label"><span>PRAVDEPODOBNOSŤ KONTAKTU JEDINCOV</span> <strong id="val-contact">0.05</strong></div>
                             <input type="range" id="param-contact" min="0" max="1" step="0.01" value="0.05" oninput="updateVal('contact', this.value)">
                         </div>
 
-                        <span class="section-label margin-top">TRANSMISSION RATES</span>
+                        <span class="section-label margin-top">PRAVDEPODOBNOSŤ PRENOSU PRE:</span>
 
                         <div class="control-group">
-                            <div class="control-label"><span>INFECTED</span> <strong id="val-trans">0.30</strong></div>
+                            <div class="control-label"><span>INFIKOVANÝCH</span> <strong id="val-trans">0.30</strong></div>
                             <input type="range" id="param-trans" min="0" max="1" step="0.01" value="0.30" oninput="updateVal('trans', this.value)">
                         </div>
 
                         <div class="control-group">
-                            <div class="control-label"><span>RECOVERED</span> <strong id="val-rectrans">0.05</strong></div>
+                            <div class="control-label"><span>VYLIEČIENÝCH</span> <strong id="val-rectrans">0.05</strong></div>
                             <input type="range" id="param-rectrans" min="0" max="1" step="0.01" value="0.05" oninput="updateVal('rectrans', this.value)">
                         </div>
 
                         <div class="control-group">
-                            <div class="control-label"><span>VACCINATED</span> <strong id="val-vactrans">0.10</strong></div>
+                            <div class="control-label"><span>ZOČKOVANÝCH</span> <strong id="val-vactrans">0.10</strong></div>
                             <input type="range" id="param-vactrans" min="0" max="1" step="0.01" value="0.10" oninput="updateVal('vactrans', this.value)">
                         </div>
 
@@ -97,13 +97,13 @@
                     <div class="actions-group">
                         <div class="speed-select-box">
                             <select id="param-speed" class="select-input">
-                                <option value="5000" selected>Speed: 1x</option>
-                                <option value="2500">Speed: 2x</option>
-                                <option value="1000">Speed: 5x</option>
+                                <option value="5000" selected>Rýchlosť: 1x</option>
+                                <option value="2500">Rýchlosť: 2x</option>
+                                <option value="1000">Rýchlosť: 5x</option>
                             </select>
                         </div>
                         <div class="btn-group">
-                            <button class="btn-run" id="btn-play" onclick="toggleSimulation()">▶ Run</button>
+                            <button class="btn-run" id="btn-play" onclick="toggleSimulation()">▶ Spusti</button>
                             <button class="btn-icon" onclick="resetSim()">⟳</button>
                         </div>
                     </div>
@@ -113,15 +113,15 @@
             <!-- REFILL / REŽIM 2: SAVED ARCHIVE -->
             <div id="panel-saved" class="mode-panel">
                 <div class="card flex-grow">
-                    <h2 class="card-main-title">SAVED SIMULATIONS</h2>
+                    <h2 class="card-main-title">ULOŽENÉ SIMULÁCIE</h2>
                     <button class="btn-save" id="btn-save-current" onclick="saveCurrentSimulation()" disabled>
-                        💾 Save Active Simulation
+                        💾 ULOŽ AKTÍVNU SIMULÁCIU
                     </button>
-                    <button class="btn-secondary" onclick="loadSimulationFromFile()">📁 Import .jsonl File</button>
+                    <button class="btn-secondary" onclick="loadSimulationFromFile()">📁 Vložiť .jsonl Súbor</button>
 
-                    <span class="section-label margin-top">LIBRARY</span>
+                    <span class="section-label margin-top">KNIŽNICA</span>
                     <div id="saved-list" class="replays-list">
-                        <div class="empty-state">No saved simulations yet.</div>
+                        <div class="empty-state">Neuložili ste zatiaľ žiadnu simuláciu</div>
                     </div>
                 </div>
             </div>
@@ -131,19 +131,19 @@
         <!-- 🎯 STREDNÝ PANEL: NETWORK TOPOLOGY -->
         <main class="main-content">
             <div class="card graph-card">
-                <h2 class="card-main-title">NETWORK TOPOLOGY</h2>
+                <h2 class="card-main-title">USPORIADANIE SIETE</h2>
                 <div class="graph-box">
                     <img id="network-image" style="display: none;" />
-                    <div id="network-placeholder" class="placeholder-text">Network Topology Display</div>
+                    <div id="network-placeholder" class="placeholder-text">Displej pre usporiadanie</div>
                 </div>
 
                 <!-- LEGENDA PODĽA PRELOŽENÉHO OBRÁZKA -->
                 <div class="legend-bar">
-                    <div class="legend-item"><span class="dot lightgreen"></span> Healthy</div>
-                    <div class="legend-item"><span class="dot red"></span> Infected</div>
-                    <div class="legend-item"><span class="dot darkgreen"></span> Recovered</div>
-                    <div class="legend-item"><span class="dot dark"></span> Dead</div>
-                    <div class="legend-item"><span class="dot blue"></span> Vaccinated</div>
+                    <div class="legend-item"><span class="dot lightgreen"></span>Zdravý</div>
+                    <div class="legend-item"><span class="dot red"></span>Infikovaný</div>
+                    <div class="legend-item"><span class="dot darkgreen"></span>Vyliečený</div>
+                    <div class="legend-item"><span class="dot dark"></span>Mŕtvy</div>
+                    <div class="legend-item"><span class="dot blue"></span>Očkovaný</div>
                 </div>
 
                 <!-- REPLAY PREHRÁVAČ (Svetlý minimalistický) -->
@@ -160,10 +160,10 @@
         <!-- ➡️ PRAVÝ PANEL: POPULATION DYNAMICS -->
         <aside class="right-panel">
             <div class="card chart-card">
-                <h2 class="card-main-title">POPULATION DYNAMICS</h2>
+                <h2 class="card-main-title">ZMENY V POPULÁCII</h2>
                 <div class="chart-box">
                     <img id="dynamics-image" style="display: none;" />
-                    <div id="dynamics-placeholder" class="placeholder-text">Chart Timeline Container</div>
+                    <div id="dynamics-placeholder" class="placeholder-text">Graf zmien</div>
                 </div>
             </div>
         </aside>
