@@ -415,8 +415,82 @@ function updateVal(id, val) {
     }
 }
 
+const PRESETS = {
+    'showcase': {
+        pop: 100,
+        contact: 0.03,
+        trans: 0.20,
+        rectrans: 0.02,
+        vactrans: 0.05,
+        death: 0.01,
+        vacrate: 0.70
+    },
+    'random1': {
+        pop: 120,
+        contact: 0.08,
+        trans: 0.85,
+        rectrans: 0.10,
+        vactrans: 0.15,
+        death: 0.05,
+        vacrate: 0.10
+    },
+    'test_vaccine': {
+        pop: 100,
+        contact: 0.05,
+        trans: 0.50,
+        rectrans: 0.05,
+        vactrans: 0.05,
+        death: 0.02,
+        vacrate: 0.85
+    },
+    'sparse': {
+        pop: 80,
+        contact: 0.015,
+        trans: 0.40,
+        rectrans: 0.05,
+        vactrans: 0.10,
+        death: 0.02,
+        vacrate: 0.30
+    }
+};
+
 function setPreset(name) {
-    // Možné nastavenie presetov
+    const config = PRESETS[name];
+    if (!config) return;
+
+    // 1. Nastavenie hodnôt sliderov a ich textových zobrazení
+    const setSliderVal = (id, val) => {
+        const input = document.getElementById(`param-${id}`);
+        if (input) {
+            input.value = val;
+            updateVal(id, val);
+        }
+    };
+
+    setSliderVal('pop', config.pop);
+    setSliderVal('contact', config.contact);
+    setSliderVal('trans', config.trans);
+    setSliderVal('rectrans', config.rectrans);
+    setSliderVal('vactrans', config.vactrans);
+    setSliderVal('death', config.death);
+    setSliderVal('vacrate', config.vacrate);
+
+    // 2. Prepnutie aktívnej triedy (modrý rámik/zvýraznenie) na kartičkách
+    const cards = document.querySelectorAll('.preset-card');
+    cards.forEach(card => {
+        const onClickAttr = card.getAttribute('onclick') || '';
+        if (onClickAttr.includes(`'${name}'`)) {
+            card.classList.add('active');
+        } else {
+            card.classList.remove('active');
+        }
+    });
+
+    // 3. Ak bežala simulácia, zresetujeme ju s novými hodnotami
+    if (isSimulating || isInitialized) {
+        resetSim();
+    }
+
 }
 
 // Inicializácia po štarte PyWebView
