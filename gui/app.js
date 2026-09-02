@@ -151,7 +151,7 @@ function toggleSimulation(forceState) {
     // 1. Zastavenie simulácie
     if (forceState === false || isSimulating) {
         isSimulating = false;
-        if (btn) btn.innerText = '▶ Run';
+        if (btn) btn.innerText = '▶ Spusť';
         if (simTimer) {
             clearInterval(simTimer);
             simTimer = null;
@@ -234,7 +234,7 @@ function changeSpeed() {
 function startInterval() {
     isSimulating = true;
     const btn = document.getElementById('btn-play');
-    if (btn) btn.innerText = '❚❚ Pause';
+    if (btn) btn.innerText = '❚❚ Zastav';
     
     const speedEl = document.getElementById('param-speed');
     const speed = speedEl ? (parseInt(speedEl.value) || 2500) : 2500;
@@ -380,7 +380,7 @@ function startReplay() {
 
     isReplayPlaying = true;
     const btn = document.getElementById('btn-replay-play');
-    if (btn) btn.innerText = '❚❚ Pause';
+    if (btn) btn.innerText = '❚❚ Zastav';
 
     if (replayTimer) clearInterval(replayTimer);
     replayTimer = setInterval(() => {
@@ -399,7 +399,7 @@ function pauseReplay() {
         replayTimer = null;
     }
     const btn = document.getElementById('btn-replay-play');
-    if (btn) btn.innerText = '▶ Play';
+    if (btn) btn.innerText = '▶ Spusť';
 }
 
 // --- POMOCNÉ FUNKCIE ---

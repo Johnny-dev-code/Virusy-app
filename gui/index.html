@@ -148,9 +148,9 @@
 
                 <!-- REPLAY PREHRÁVAČ (Svetlý minimalistický) -->
                 <div id="replay-controls" class="replay-bar" style="display: none;">
-                    <button class="btn-ctrl" onclick="replayStep(-1)">◀ Step</button>
-                    <button class="btn-ctrl" id="btn-replay-play" onclick="toggleReplayPlay()">▶ Play</button>
-                    <button class="btn-ctrl" onclick="replayStep(1)">Step ▶</button>
+                    <button class="btn-ctrl" onclick="replayStep(-1)">◀ Krok</button>
+                    <button class="btn-ctrl" id="btn-replay-play" onclick="toggleReplayPlay()">▶ Spusť</button>
+                    <button class="btn-ctrl" onclick="replayStep(1)">Krok ▶</button>
                     <input type="range" id="replay-timeline" min="0" max="0" value="0" class="timeline-slider" oninput="onTimelineSeek(this.value)">
                     <span id="replay-step-counter" class="step-counter">Iter: 0/0</span>
                 </div>
@@ -177,24 +177,24 @@
         <button class="help-btn">?</button>
         <div class="help-tooltip">
             <div class="help-section">
-                <strong>Návod pre časť Simulation:</strong>
+                <strong>Návod pre časť Simulácia:</strong>
                 <ol>
                     <li>Vyber si jednu možnosť z Scenario Presets vľavo hore.</li>
                     <li><i>(Optional)</i> Uprav hodnoty pomocou posuvníkov na ľavej strane.</li>
                     <li><i>(Optional)</i> Vyber si rýchlosť prehrávania.</li>
-                    <li>Stlač <b>Run</b> pre spustenie simulácie.</li>
-                    <li>Sleduj vývoj epidémie na grafoch v strednej časti <i>Network Topology</i> a v časti napravo <i>Population Dynamics</i>.</li>
+                    <li>Stlač <b>Spusti</b> pre spustenie simulácie.</li>
+                    <li>Sleduj vývoj epidémie na grafoch v strednej časti <i>Usporiadanie siete</i> a v časti napravo <i></i>Zmeny v populácii</i>.</li>
                 </ol>
             </div>
             <hr class="help-divider">
             <div class="help-section">
-                <strong>Návod pre časť Saved:</strong>
+                <strong>Návod pre časť Uložené:</strong>
                 <ol>
-                    <li>Ulož si simuláciu alebo ju vlož v JSON formáte cez tlačidlo <b>Import</b> na ľavej strane.</li>
-                    <li>Spusti simuláciu cez kliknutie na niektorú položku v časti <b>Library</b>.</li>
-                    <li>Pomocou posuvníka alebo tlačidiel <b>Step</b> sa posuň v simulácii na požadované miesto.</li>
-                    <li>Spusti simuláciu pomocou tlačidla <b>Play</b> alebo zastav pomocou tlačidla <b>Pause</b>.</li>
-                    <li>Sleduj vývoj epidémie na grafoch v strednej časti <i>Network Topology</i> a v časti napravo <i>Population Dynamics</i>.</li>
+                    <li>Ulož si simuláciu alebo ju vlož v JSON formáte cez tlačidlo <b>ulož</b> na ľavej strane.</li>
+                    <li>Spusti simuláciu cez kliknutie na niektorú položku v časti <b>Knižnica</b>.</li>
+                    <li>Pomocou posuvníka alebo tlačidiel <b>krok</b> sa posuň v simulácii na požadované miesto.</li>
+                    <li>Spusti simuláciu pomocou tlačidla <b>spusť</b> alebo zastav pomocou tlačidla <b>zastav</b>.</li>
+                    <li>Sleduj vývoj epidémie na grafoch v strednej časti <i>Usporiadanie siete</i> a v časti napravo <i></i>Zmeny v populácii</i>.</li>
                 </ol>
             </div>
         </div>
