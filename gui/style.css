@@ -76,7 +76,7 @@ body {
 
 .sidebar { width: 300px; display: flex; flex-direction: column; }
 .main-content { flex: 1; display: flex; flex-direction: column; }
-.right-panel { width: 320px; display: flex; flex-direction: column; }
+.right-panel { width: 30%; min-width: 300px; max-width: 500px; display: flex; flex-direction: column; }
 
 .mode-panel { display: none; flex-direction: column; height: 100%; }
 .mode-panel.active { display: flex; }
